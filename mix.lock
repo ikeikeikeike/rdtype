@@ -1,0 +1,2 @@
+%{"connection": {:hex, :connection, "1.0.3", "3145f7416be3df248a4935f24e3221dc467c1e3a158d62015b35bd54da365786", [:mix], []},
+  "redix": {:hex, :redix, "0.4.0", "c8cfad755252e5441c4119437ba3a8989518af7aa90dbd6f4ff7207b72e4a967", [:mix], [{:connection, "~> 1.0.0", [hex: :connection, optional: false]}]}}
