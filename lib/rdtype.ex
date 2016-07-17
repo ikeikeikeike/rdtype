@@ -1,4 +1,11 @@
 defmodule Rdtype do
+
+  defmodule Coder do
+    use Behaviour
+    @callback enc(message::any) :: message::String.t | {:error, term}
+    @callback dec(message::String.t) :: message::any | {:error, term}
+  end
+
   @doc false
   defmacro __using__(opts) do
     quote do
@@ -17,7 +24,9 @@ defmodule Rdtype do
         opts = @__using_resource__
         case opts[:coder] do
           nil -> val
-          cde -> cde.parse!(val)
+          cde when not is_bitstring(val) ->
+            cde.enc(val)
+          _   -> val
         end
       end
 
@@ -25,7 +34,11 @@ defmodule Rdtype do
         opts = @__using_resource__
         case opts[:coder] do
           nil -> val
-          cde -> cde.parse!(val)
+          cde ->
+            case Poison.decode(val) do
+              {:ok, val}  -> val
+              {:error, _} -> val
+            end
         end
       end
 
@@ -36,9 +49,8 @@ defmodule Rdtype do
       def flushdb do
         Redix.command!(pid, ~w(FLUSHDB))
       end
-      defdelegate clear, to: __MODULE__, as: :flushdb
 
-      # def clearall do
+      # def flushall do
       #   Redix.command!(pid, ~w(FLUSHALL))
       # end
 
@@ -63,10 +75,10 @@ defmodule Rdtype do
             Redix.command!(pid, ~w(SET #{key} #{enc(val)}))
           end
 
+          defdelegate add(key, val), to: __MODULE__, as: :append
           def append(key, val) do
             Redix.command!(pid, ~w(APPEND #{key} #{enc(val)}))
           end
-          defdelegate add(key, val), to: __MODULE__, as: :append
 
           def incr(key) do
             Redix.command!(pid, ~w(INCR #{key}))
@@ -90,13 +102,33 @@ defmodule Rdtype do
           end
 
         :list ->
+          defdelegate shift(key), to: __MODULE__, as: :lpop
           def lpop(key) do
             case Redix.command!(pid, ~w(LPOP #{key})) do
               nil -> nil
               val -> dec(val)
             end
           end
-          defdelegate shift(key), to: __MODULE__, as: :lpop
+
+          defdelegate pop(key), to: __MODULE__, as: :rpop
+          def rpop(key) do
+            case Redix.command!(pid, ~w(RPOP #{key})) do
+              nil -> nil
+              val -> dec(val)
+            end
+          end
+
+          defdelegate unshift(key, val), to: __MODULE__, as: :lpush
+          def lpush(key, val) do
+            Redix.command!(pid, ~w(LPUSH #{key} #{enc(val)}))
+          end
+
+          defdelegate push(key, val), to: __MODULE__, as: :rpush
+          def rpush(key, val) do
+            Redix.command!(pid, ~w(RPUSH #{key} #{enc(val)}))
+          end
+
+          defdelegate clear, to: __MODULE__, as: :flushdb
 
           def all(key) do
             Redix.command!(pid, ~w(LRANGE #{key} 0 -1))

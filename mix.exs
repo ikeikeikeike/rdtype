@@ -30,6 +30,7 @@ defmodule Rdtype.Mixfile do
   defp deps do
     [
       {:redix, ">= 0.0.0"},
+      {:poison, ">= 0.0.0", only: :test},
     ]
   end
 end
