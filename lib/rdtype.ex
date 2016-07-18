@@ -46,6 +46,25 @@ defmodule Rdtype do
         Redix.command!(pid, ~w(KEYS #{key}))
       end
 
+      def exists(key) when is_bitstring(key) do
+        Redix.command!(pid, ~w(EXISTS #{key}))
+      end
+      def exists(keys) do
+        Redix.command!(pid, ["EXISTS"] ++ keys)
+      end
+
+      def expire(key, val) do
+        Redix.command!(pid, ~w(EXPIRE #{key} #{val}))
+      end
+
+      def ttl(key) do
+        Redix.command!(pid, ~w(TTL #{key}))
+      end
+
+      def pttl(key) do
+        Redix.command!(pid, ~w(PTTL #{key}))
+      end
+
       def type(key) do
         Redix.command!(pid, ~w(TYPE #{key}))
       end
@@ -137,6 +156,21 @@ defmodule Rdtype do
           end
 
           defdelegate clear, to: __MODULE__, as: :flushdb
+
+          defdelegate length(key), to: __MODULE__, as: :llen
+          def llen(key) do
+            Redix.command!(pid, ~w(LLEN #{key}))
+          end
+
+          def take(key, 0), do: []
+          def take(key, t) when t > 0, do: lrange(key, 0, t - 1)
+          def take(key, t) when t < 0, do: lrange(key, t, -1)
+
+          defdelegate slice(key, f, t), to: __MODULE__, as: :lrange
+          def lrange(key, f, t) do
+            Redix.command!(pid, ~w(LRANGE #{key} #{f} #{t}))
+            |> Enum.map(&dec(&1))
+          end
 
           def all(key) do
             Redix.command!(pid, ~w(LRANGE #{key} 0 -1))

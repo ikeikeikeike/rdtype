@@ -46,9 +46,65 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
       uri: "redis://127.0.0.1:6379/12"
   end
 
+  defmodule ListT do
+    use Rdtype,
+      type: :list,
+      uri: "redis://127.0.0.1:6379/13"
+  end
+
+  defmodule ListJ do
+    use Rdtype,
+      type: :list,
+      coder: Json,
+      uri: "redis://127.0.0.1:6379/13"
+  end
+
+  test "keys" do
+    assert "OK"  == StrJ.flushdb
+    assert "OK"  == StrJ.set "key", "keys"
+    assert "OK"  == StrJ.set "keys", "keys"
+    assert "OK"  == StrJ.set "knockout", "keys"
+
+    assert ["keys", "key", "knockout"]  == StrJ.keys "k*"
+  end
+
+  test "exists" do
+    assert "OK"  == StrJ.flushdb
+    assert "OK"  == StrJ.set "exist", "keys"
+    assert "OK"  == StrJ.set "exists", "keys"
+
+    assert 1 == StrJ.exists "exist"
+    assert 2 == StrJ.exists ["exist", "exists"]
+  end
+
+  test "expire & ttl & pttl" do
+    assert "OK"  == StrJ.flushdb
+    assert "OK"  == StrJ.set "mykey", "Hello"
+
+    assert 1  == StrJ.expire "mykey", 10
+    assert 1  == StrJ.expire "mykey", 10
+    assert 10 == StrJ.ttl "mykey"
+
+    assert "OK" == StrJ.set "mykey", "Unk"
+    assert -1 == StrJ.ttl "mykey"
+    assert -1 == StrJ.pttl "mykey"
+
+    assert 1  == StrJ.expire "mykey", 1
+    assert 100 < StrJ.pttl "mykey"
+  end
+
+  test "type" do
+    assert "OK"  == StrJ.flushdb
+    assert "OK"  == StrJ.set "type", "keys"
+
+    assert "string" == StrJ.type "type"
+  end
+
   test "ping" do
     assert "PONG" == StrT.ping
   end
+
+  # String
 
   test "string.get" do
     assert "OK"  == StrT.flushdb
@@ -131,18 +187,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
     assert -1 == StrT.decr "incr"
   end
 
-  defmodule ListT do
-    use Rdtype,
-      type: :list,
-      uri: "redis://127.0.0.1:6379/13"
-  end
-
-  defmodule ListJ do
-    use Rdtype,
-      type: :list,
-      coder: Json,
-      uri: "redis://127.0.0.1:6379/13"
-  end
+  # List
 
   test "list.unshift" do
     assert "OK" == ListT.clear
@@ -220,6 +265,60 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
     assert [2, %{"shift" => "shift", "pop" => 1}] == ListJ.pop "pop"
     assert "pop" == ListJ.pop "pop"
     assert 2 == ListJ.pop "pop"
+  end
+
+  test "list.llen & list.length" do
+    assert "OK" == ListT.clear
+
+    assert 0 == ListT.length "length"
+
+    assert 1 == ListT.push "length", 2
+    assert 2 == ListT.push "length", "pop"
+
+    assert 2 == ListT.llen "length"
+    assert 2 == ListT.length "length"
+  end
+
+  test "list.slice & list.lrange" do
+    assert "OK" == ListJ.clear
+
+    assert 1 == ListJ.push "lrange", 1
+    assert 2 == ListJ.push "lrange", 2
+    assert 3 == ListJ.push "lrange", 3
+    assert 4 == ListJ.push "lrange", 4
+    assert 5 == ListJ.push "lrange", 5
+    assert 6 == ListJ.push "lrange", 6
+
+    assert [1] == ListJ.lrange "lrange", 0, 0
+    assert [1] == ListJ.slice "lrange", 0, 0
+    assert [1, 2, 3, 4] == ListJ.slice "lrange", 0, 3
+    assert [3, 4, 5, 6] == ListJ.slice "lrange", 2, 5
+  end
+
+  test "list.take" do
+    assert "OK" == ListJ.clear
+
+    assert 1 == ListJ.push "lrange", 1
+    assert 2 == ListJ.push "lrange", 2
+    assert 3 == ListJ.push "lrange", 3
+    assert 4 == ListJ.push "lrange", 4
+    assert 5 == ListJ.push "lrange", 5
+    assert 6 == ListJ.push "lrange", 6
+
+    assert [] == ListJ.take "lrange", 0
+    assert [] == ListJ.take "lrange", -0
+    assert [1] == ListJ.take "lrange", 1
+    assert [6] == ListJ.take "lrange", -1
+    assert [1, 2] == ListJ.take "lrange", 2
+    assert [5, 6] == ListJ.take "lrange", -2
+  end
+
+  test "list.first" do
+
+  end
+
+  test "list.last" do
+
   end
 
 ```
