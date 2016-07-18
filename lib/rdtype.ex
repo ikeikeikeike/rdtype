@@ -42,6 +42,14 @@ defmodule Rdtype do
         end
       end
 
+      def keys(key) do
+        Redix.command!(pid, ~w(KEYS #{key}))
+      end
+
+      def type(key) do
+        Redix.command!(pid, ~w(TYPE #{key}))
+      end
+
       def ping do
         Redix.command!(pid, ~w(PING))
       end

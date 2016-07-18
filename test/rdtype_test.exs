@@ -22,6 +22,22 @@ defmodule RdtypeTest do
       uri: "redis://127.0.0.1:6379/12"
   end
 
+  test "keys" do
+    assert "OK"  == StrJ.flushdb
+    assert "OK"  == StrJ.set "key", "keys"
+    assert "OK"  == StrJ.set "keys", "keys"
+    assert "OK"  == StrJ.set "knockout", "keys"
+
+    assert ["keys", "key", "knockout"]  == StrJ.keys "k*"
+  end
+
+  test "type" do
+    assert "OK"  == StrJ.flushdb
+    assert "OK"  == StrJ.set "type", "keys"
+
+    assert "string" == StrJ.type "type"
+  end
+
   test "ping" do
     assert "PONG" == StrT.ping
   end
