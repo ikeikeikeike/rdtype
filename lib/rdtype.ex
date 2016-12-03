@@ -46,6 +46,11 @@ defmodule Rdtype do
         Redix.command!(pid, ~w(KEYS #{key}))
       end
 
+      def del(key) when is_binary(key), do: del [key]
+      def del(keys) when is_list(keys) do
+        Redix.command!(pid, ["DEL"] ++ keys)
+      end
+
       def exists(key) when is_bitstring(key) do
         Redix.command!(pid, ~w(EXISTS #{key}))
       end
