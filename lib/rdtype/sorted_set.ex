@@ -35,8 +35,15 @@ defmodule Rdtype.SortedSet do
           []
         end
 
-        Redix.command!(pid, cmd)
-        |> Enum.map(&dec(&1))
+        r =
+          Redix.command!(pid, cmd)
+          |> Enum.map(&dec(&1))
+
+        if opts[:withscores] do
+          Enum.chunk r, 2, 2
+        else
+          r
+        end
       end
 
       def zunionstore(key, cmd) when is_binary(cmd) do
