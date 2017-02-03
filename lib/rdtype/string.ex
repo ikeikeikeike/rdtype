@@ -18,12 +18,12 @@ defmodule Rdtype.String do
       end
 
       def set(key, val) do
-        Redix.command!(pid, ~w(SET #{key} #{enc(val)}))
+        Redix.command!(pid, ["SET", key, enc(val)])
       end
 
       defdelegate add(key, val), to: __MODULE__, as: :append
       def append(key, val) do
-        Redix.command!(pid, ~w(APPEND #{key} #{enc(val)}))
+        Redix.command!(pid, ["APPEND", key, enc(val)])
       end
 
       def incr(key) do

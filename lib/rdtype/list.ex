@@ -20,12 +20,12 @@ defmodule Rdtype.List do
 
       defdelegate unshift(key, val), to: __MODULE__, as: :lpush
       def lpush(key, val) do
-        Redix.command!(pid, ~w(LPUSH #{key} #{enc(val)}))
+        Redix.command!(pid, ["LPUSH", key, enc(val)])
       end
 
       defdelegate push(key, val), to: __MODULE__, as: :rpush
       def rpush(key, val) do
-        Redix.command!(pid, ~w(RPUSH #{key} #{enc(val)}))
+        Redix.command!(pid, ["RPUSH", key, enc(val)])
       end
 
       defdelegate clear, to: __MODULE__, as: :flushdb

@@ -4,7 +4,7 @@ defmodule Rdtype.SortedSet do
     quote do
 
       def zadd(key, num, val) do
-        Redix.command!(pid, ~w(ZADD #{key} #{num} #{enc(val)}))
+        Redix.command!(pid, ["ZADD", key, num, enc(val)])
       end
 
       def zincrby(key, num, val) do

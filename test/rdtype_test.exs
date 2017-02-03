@@ -41,7 +41,7 @@ defmodule RdtypeTest do
     assert "OK"  == StrJ.set "keys", "keys"
     assert "OK"  == StrJ.set "knockout", "keys"
 
-    assert ["keys", "key", "knockout"]  == StrJ.keys "k*"
+    assert ["knockout", "keys", "key"] == StrJ.keys "k*"
   end
 
   test "exists" do
@@ -177,8 +177,8 @@ defmodule RdtypeTest do
     assert "OK" == ListT.clear
 
     assert 1 == ListT.push "push", 1
-    assert 2 == ListT.push "push", "push"
-    assert ["1", "push"] == ListT.all "push"
+    assert 2 == ListT.push "push", "push push"
+    assert ["1", "push push"] == ListT.all "push"
   end
 
   test "list.unshift with coder" do
