@@ -1,7 +1,6 @@
 defmodule Rdtype do
 
   defmodule Coder do
-    use Behaviour
     @callback enc(message::any) :: message::String.t | {:error, term}
     @callback dec(message::String.t) :: message::any | {:error, term}
   end
@@ -43,47 +42,47 @@ defmodule Rdtype do
       end
 
       def keys(key) do
-        Redix.command!(pid, ~w(KEYS #{key}))
+        Redix.command!(pid(), ~w(KEYS #{key}))
       end
 
       def del(key) when is_binary(key), do: del [key]
       def del(keys) when is_list(keys) do
-        Redix.command!(pid, ["DEL"] ++ keys)
+        Redix.command!(pid(), ["DEL"] ++ keys)
       end
 
       def exists(key) when is_bitstring(key) do
-        Redix.command!(pid, ~w(EXISTS #{key}))
+        Redix.command!(pid(), ~w(EXISTS #{key}))
       end
       def exists(keys) do
-        Redix.command!(pid, ["EXISTS"] ++ keys)
+        Redix.command!(pid(), ["EXISTS"] ++ keys)
       end
 
       def expire(key, val) do
-        Redix.command!(pid, ~w(EXPIRE #{key} #{val}))
+        Redix.command!(pid(), ~w(EXPIRE #{key} #{val}))
       end
 
       def ttl(key) do
-        Redix.command!(pid, ~w(TTL #{key}))
+        Redix.command!(pid(), ~w(TTL #{key}))
       end
 
       def pttl(key) do
-        Redix.command!(pid, ~w(PTTL #{key}))
+        Redix.command!(pid(), ~w(PTTL #{key}))
       end
 
       def type(key) do
-        Redix.command!(pid, ~w(TYPE #{key}))
+        Redix.command!(pid(), ~w(TYPE #{key}))
       end
 
       def ping do
-        Redix.command!(pid, ~w(PING))
+        Redix.command!(pid(), ~w(PING))
       end
 
       def flushdb do
-        Redix.command!(pid, ~w(FLUSHDB))
+        Redix.command!(pid(), ~w(FLUSHDB))
       end
 
       # def flushall do
-      #   Redix.command!(pid, ~w(FLUSHALL))
+      #   Redix.command!(pid(), ~w(FLUSHALL))
       # end
 
       case @__using_resource__[:type] do
@@ -91,6 +90,8 @@ defmodule Rdtype do
           use Rdtype.String
         :list ->
           use Rdtype.List
+        :set ->
+          use Rdtype.Set
         :sorted_set ->
           use Rdtype.SortedSet
 

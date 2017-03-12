@@ -4,18 +4,18 @@ defmodule Rdtype.SortedSet do
     quote do
 
       def zadd(key, num, val) do
-        Redix.command!(pid, ["ZADD", key, num, enc(val)])
+        Redix.command!(pid(), ["ZADD", key, num, enc(val)])
       end
 
       def zincrby(key, num, val) do
-        Redix.command!(pid, ~w(ZINCRBY #{key} #{num} #{val}))
+        Redix.command!(pid(), ~w(ZINCRBY #{key} #{num} #{val}))
       end
 
       def zrange(key, f, t, :withscores) do
         zrange key, f, t, "WITHSCORES"
       end
       def zrange(key, f, t, withscores \\ "") do
-        Redix.command!(pid, ~w(ZRANGE #{key} #{f} #{t} #{withscores}))
+        Redix.command!(pid(), ~w(ZRANGE #{key} #{f} #{t} #{withscores}))
         |> Enum.map(&dec(&1))
       end
 
@@ -36,7 +36,7 @@ defmodule Rdtype.SortedSet do
         end
 
         r =
-          Redix.command!(pid, cmd)
+          Redix.command!(pid(), cmd)
           |> Enum.map(&dec(&1))
 
         if opts[:withscores] do
@@ -47,7 +47,7 @@ defmodule Rdtype.SortedSet do
       end
 
       def zunionstore(key, cmd) when is_binary(cmd) do
-        Redix.command!(pid, String.split(cmd))
+        Redix.command!(pid(), String.split(cmd))
       end
       def zunionstore(key, keys) when is_list(keys) do
         zunionstore(key, keys, [])
@@ -65,11 +65,11 @@ defmodule Rdtype.SortedSet do
           []
         end
 
-        Redix.command!(pid, cmd)
+        Redix.command!(pid(), cmd)
       end
 
       # def decr(key) do
-        # Redix.command!(pid, ~w(DECR #{key}))
+        # Redix.command!(pid(), ~w(DECR #{key}))
       # end
     end
   end
