@@ -35,13 +35,26 @@ defmodule RdtypeTest do
       uri: "redis://127.0.0.1:6379/13"
   end
 
+  defmodule SetT do
+    use Rdtype,
+      type: :set,
+      uri: "redis://127.0.0.1:6379/14"
+  end
+
+  defmodule SetJ do
+    use Rdtype,
+      type: :set,
+      coder: Json,
+      uri: "redis://127.0.0.1:6379/14"
+  end
+
   test "keys" do
     assert "OK"  == StrJ.flushdb
     assert "OK"  == StrJ.set "key", "keys"
     assert "OK"  == StrJ.set "keys", "keys"
     assert "OK"  == StrJ.set "knockout", "keys"
 
-    assert ["knockout", "keys", "key"] == StrJ.keys "k*"
+    assert Enum.all?(StrJ.keys("k*"), & &1 in ["knockout", "keys", "key"])
   end
 
   test "exists" do
@@ -296,5 +309,84 @@ defmodule RdtypeTest do
   test "list.last" do
 
   end
+
+  test "set.sadd set.smembers with Coder" do
+    assert "OK"  == SetJ.flushdb
+
+    SetJ.add "sadd", 1
+    SetJ.add "sadd", "cat"
+    SetJ.add "sadd", "dog"
+    SetJ.add "sadd", "dog"
+
+    assert length(SetJ.all("sadd")) == 3
+    assert Enum.all?(SetJ.all("sadd"), & &1 in [1, "dog", "cat"])
+  end
+
+  test "set.sismember with Coder" do
+    assert "OK"  == SetJ.flushdb
+
+    SetJ.add "sadd", 1
+    SetJ.add "sadd", "cat"
+    SetJ.add "sadd", "dog"
+    SetJ.add "sadd", "dog"
+
+    assert true == SetJ.member("sadd", "dog")
+    assert true == SetJ.member("sadd", "cat")
+    assert true == SetJ.member("sadd", 1)
+    assert false == SetJ.member("sadd", "aaabb")
+    assert false == SetJ.member("sadd", "")
+    assert false == SetJ.member("sadd", nil)
+    assert false == SetJ.member("sadd", "qwed")
+  end
+
+  test "set.scard with Coder" do
+    assert "OK"  == SetJ.flushdb
+
+    SetJ.add "sadd", 1
+    assert 1 == SetJ.length("sadd")
+
+    SetJ.add "sadd", "cat"
+    assert 2 == SetJ.length("sadd")
+
+    SetJ.add "sadd", "dog"
+    assert 3 == SetJ.length("sadd")
+
+    SetJ.add "sadd", "dog"
+    assert 3 == SetJ.length("sadd")
+
+    SetJ.add "sadd", "unko"
+    assert 4 == SetJ.length("sadd")
+  end
+
+  test "set.spop with Coder" do
+    assert "OK"  == SetJ.flushdb
+
+    SetJ.add "sadd", 1
+    SetJ.add "sadd", "cat"
+    SetJ.add "sadd", "dog"
+    SetJ.add "sadd", "dog"
+
+    assert nil != SetJ.pop("sadd")
+    assert nil != SetJ.pop("sadd")
+    assert nil != SetJ.pop("sadd")
+    assert nil == SetJ.pop("sadd")
+    assert nil == SetJ.pop("sadd")
+    assert nil == SetJ.pop("sadd")
+    assert nil == SetJ.pop("sadd")
+  end
+
+  test "set check del key" do
+    assert "OK"  == SetJ.flushdb
+
+    SetJ.add "sadd", 1
+    SetJ.add "sadd", "cat"
+    SetJ.add "sadd", "dog"
+    SetJ.add "sadd", "dog"
+
+    SetJ.del "sadd"
+
+    assert length(SetJ.all("sadd")) == 0
+  end
+
 
 end
