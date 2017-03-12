@@ -7,7 +7,7 @@ defmodule Rdtype.Mixfile do
 
   def project do
     [app: :rdtype,
-     version: "0.4.1",
+     version: "0.5.0",
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -38,9 +38,9 @@ defmodule Rdtype.Mixfile do
       {:redix, ">= 0.0.0"},
 
       {:poison, ">= 0.0.0", only: :test},
-      {:credo, "~> 0.5", only: [:dev, :test]},
+      {:credo, "~> 0.6", only: [:dev, :test]},
       {:earmark, ">= 0.0.0", only: :dev},
-      {:ex_doc, "~> 0.10", only: :dev},
+      {:ex_doc, "~> 0.15", only: :dev},
     ]
   end
 
