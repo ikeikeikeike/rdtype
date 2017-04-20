@@ -13,10 +13,17 @@ defmodule Rdtype do
 
       def pid do
         opts = @__using_resource__
-        case Redix.start_link(opts[:uri], name: __MODULE__) do
+        case Redix.start_link(parse_url(opts[:uri]), name: __MODULE__) do
           {:ok, pid} -> pid
           {:error, {:already_started, pid}} -> pid
         end
+      end
+
+      def parse_url({:system, env}) when is_binary(env) do
+        System.get_env(env) || ""
+      end
+      def parse_url(uri) do
+        uri
       end
 
       defp enc(val) do
